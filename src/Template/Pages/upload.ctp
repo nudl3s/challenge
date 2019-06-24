@@ -12,7 +12,10 @@
             <div class="progress m-3" style="display: none;">
                 <div class="progress-bar" role="progressbar"></div>
             </div>
-            <?= $this->Form->button(__('Upload'), ['type' => 'submit', 'class' => 'form-control btn btn-default m-2']); ?>
+            <div class="form-group">
+                <?= $this->Form->button(__('Upload'), ['type' => 'submit', 'class' => 'form-control btn btn-default my-2 uploadBtn']); ?>
+            </div>
+
 
             <?= $this->Form->end(); ?>
         </div>

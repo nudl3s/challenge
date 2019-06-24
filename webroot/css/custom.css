@@ -44,9 +44,6 @@
 .inputDnD .form-control-file:hover:before {
     border-style: solid;
 }
-body {
-    background-color: #f7f7f9;
-}
 
 .labelFileName {
     position: absolute;
@@ -55,3 +52,15 @@ body {
     margin-top: -30px;
 }
 
+.btn:focus,.btn:active {
+    outline: none !important;
+    box-shadow: none;
+}
+
+.form-group {
+    text-align: center;
+}
+.uploadBtn {
+    background-color: #20c997;
+    width: 40%;
+}
