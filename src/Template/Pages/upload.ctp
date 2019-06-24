@@ -96,12 +96,16 @@
         e.stopPropagation();
         e.preventDefault();
 
-
-        var files = e.originalEvent.dataTransfer.files;
-        if (files) {
-            $('input[type=file]').prop('files', e.originalEvent.dataTransfer.files);
-            $('#file').attr('data-title', files[0].name);
+        if (e.originalEvent.dataTransfer.files.length > 1) {
+            return alert('You can add only one file.');
+        } else {
+            var files = e.originalEvent.dataTransfer.files;
+            if (files) {
+                $('input[type=file]').prop('files', e.originalEvent.dataTransfer.files);
+                $('#file').attr('data-title', files[0].name);
+            }
         }
+
     });
 
     $('#file').on("change", function(){
