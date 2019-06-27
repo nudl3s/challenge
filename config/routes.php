@@ -28,7 +28,12 @@ Router::scope('/', function (RouteBuilder $routes) {
 
     $routes->connect('/', ['controller' => 'Pages', 'action' => 'home']);
     $routes->connect('/upload', ['controller' => 'Pages', 'action' => 'upload']);
+    $routes->connect('/verify', ['controller' => 'Pages', 'action' => 'verify']);
+    $routes->connect('/verify/*', ['controller' => 'Pages', 'action' => 'verify']);
     $routes->connect('/video/*', ['controller' => 'Pages', 'action' => 'single']);
+
+    $routes->connect('/tus/*', ['controller' => 'Tus', 'action' => 'server']);
+    $routes->connect('/tus', ['controller' => 'Tus', 'action' => 'server']);
 
     $routes->fallbacks(DashedRoute::class);
 });

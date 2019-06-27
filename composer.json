@@ -6,11 +6,12 @@
     "license": "MIT",
     "require": {
         "php": ">=5.6",
+        "ext-json": "*",
+        "ankitpokhrel/tus-php": "^1.0",
         "cakephp/cakephp": "3.7.*",
         "cakephp/migrations": "^2.0.0",
         "cakephp/plugin-installer": "^1.0",
-        "mobiledetect/mobiledetectlib": "2.*",
-        "ext-json": "*"
+        "mobiledetect/mobiledetectlib": "2.*"
     },
     "require-dev": {
         "cakephp/bake": "^1.9.0",

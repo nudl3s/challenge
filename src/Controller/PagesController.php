@@ -6,6 +6,10 @@ use Cake\I18n\Time;
 use Cake\ORM\TableRegistry;
 use Cake\Routing\Router;
 use App\Model\Table\FilesTable;
+use GuzzleHttp\Exception\ConnectException;
+use TusPhp\Exception\ConnectionException;
+use TusPhp\Exception\FileException;
+use TusPhp\Exception\TusException;
 
 class PagesController extends AppController
 {
@@ -28,36 +32,95 @@ class PagesController extends AppController
      */
     public function upload()
     {
+
+        $server = Router::url(array('controller' => 'Tus', 'action' => 'server'), true);
+        $client = new \TusPhp\Tus\Client($server, ['verify' => false]);
+
+        $client->setApiPath('/challenge/tus');
+
+
         $file = '';
         if ($this->request->is('ajax')) {
             $this->autoRender = false;
             $this->layout = 'ajax';
 
             if (!empty($this->request->getData('file'))) {
-                $filename = $this->request->getData('file')['name'];
-                $size = $this->request->getData('file')['size'];
-                $type = $this->request->getData('file')['type'];
-                $url = Router::url('/', true) . 'files/' . $filename;
-                $uploadPath = 'files/';
-                $uploadFile = $uploadPath . $filename;
-                if (move_uploaded_file($this->request->getData('file')['tmp_name'], $uploadFile)) {
-                    $files = TableRegistry::getTableLocator()->get('Files');
-                    $file = $files->newEntity([
-                        'name' => $filename,
-                        'path' => $url,
-                        'size' => $size,
-                        'extension' => $type,
-                        'created' => new \DateTime('now')
+                $fileMeta  = $this->request->getData('file');
+                $uploadKey = hash_file('md5', $fileMeta['tmp_name']);
+                try {
+                    $client->setKey($uploadKey)->file($fileMeta['tmp_name'], time() . '_' . $fileMeta['name']);
+                    $bytesUploaded = $client->upload(5000000); // Chunk of 5 mb
+                    echo json_encode([
+                        'status' => 'uploading',
+                        'bytes_uploaded' => $bytesUploaded,
+                        'upload_key' => $uploadKey
                     ]);
-                    if ($files->save($file)) {
-                        $urlVideo = $url = Router::url(['controller' => 'Pages', 'action' => 'single', $file->id,'_full' => true]);
-                        echo json_encode(array('id' => $file->id, 'name' => $filename, 'url' => $urlVideo));
-                    }
+                }
+                catch( ConnectionException $e )
+                {
+                    echo json_encode([
+                        'status' => 'error',
+                        'bytes_uploaded' => -1,
+                        'upload_key' => '',
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+                catch ( FileException $b )
+                {
+                    echo json_encode([
+                        'status' => 'error',
+                        'bytes_uploaded' => -1,
+                        'upload_key' => '',
+                        'error' => $b->getMessage(),
+                    ]);
+                }
+                catch ( TusException $c )
+                {
+                    echo json_encode([
+                        'status' => 'error',
+                        'bytes_uploaded' => -1,
+                        'upload_key' => '',
+                        'error' => $c->getMessage(),
+                    ]);
                 }
             }
         }
 
         $this->set('file', $file);
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    public function verify() {
+        $this->autoRender = false;
+        $this->layout = 'ajax';
+        $server = Router::url(array('controller' => 'Tus', 'action' => 'server'), true);
+        $client = new \TusPhp\Tus\Client($server, ['verify' => false]);
+        $client->setApiPath('/challenge/tus');
+
+        $uploadKey = uniqid('file');
+        try {
+            $offset = $client->setKey($uploadKey)->getOffset();
+            $status = false !== $offset ? 'resume' : 'new';
+            $offset = false === $offset ? 0 : $offset;
+            echo json_encode([
+                'status' => $status,
+                'bytes_uploaded' => $offset,
+                'upload_key' => $uploadKey,
+            ]);
+        } catch (ConnectException $e) {
+            echo json_encode([
+                'status' => 'error',
+                'bytes_uploaded' => -1,
+            ]);
+        } catch (FileException $e) {
+            echo json_encode([
+                'status' => 'resume',
+                'bytes_uploaded' => 0,
+                'upload_key' => '',
+            ]);
+        }
     }
 
     public function single($id) {

@@ -7,6 +7,7 @@
         <div>
             <video width="700" controls>
                 <source src="<?= $video->path; ?>" type="video/mp4">
+                <source src="<?= $video->path; ?>" type='video/x-matroska; codecs="theora, vorbis"'>
                 <source src="<?= $video->path; ?>" type="video/ogg">
                 <source src="<?= $video->path; ?>" type="video/webm">
                 <source src="<?= $video->path; ?>" type="video/x-flv">
