@@ -4,6 +4,9 @@
             <h3>Here you can upload your video files</h3>
 
             <?= $this->Form->create($file, ['type' => 'file', 'id' => 'videoForm']); ?>
+            <div class="alert alert-danger" style="display: none;" role="alert">
+
+            </div>
             <div class="form-group inputDnD">
                 <label class="sr-only" for="inputFile">File Upload</label>
                 <?= $this->Form->input($file, ['type' => 'file', 'name' => 'file', 'id' => 'file', 'class' => 'form-control-file text-success font-weight-bold', 'data-title' => 'Drag and drop a file']); ?>
@@ -58,11 +61,16 @@
                 success:function(result){
                     var obj = JSON.parse(result);
 
-                    var resultVideo = '<div class="col-md-12 my-2"><a href="' + obj.url +'">' + obj.name + '</a></div>';
-                    $('#uploadedFiles').append(resultVideo);
-                    $('.progress').hide();
-                    $('.progress-bar').css("width", "0%");
-                    $('#file').val('');
+                    console.log(obj);
+                    if (obj.error == 1) {
+                        $('.alert').show();
+                        $('.alert').text("Your file couldn't be uploaded! Please try again!");
+                        cleanUp();
+                    }  else {
+                        var resultVideo = '<div class="col-md-12 my-2"><a href="' + obj.url +'">' + obj.name + '</a></div>';
+                        $('#uploadedFiles').append(resultVideo);
+                        cleanUp();
+                    }
                 }
             });
         }
@@ -112,4 +120,22 @@
         var filename = $(this).val().replace(/.*(\/|\\)/, '');
         $('#file').attr('data-title', filename);
     });
+
+    var cleanUp = function () {
+
+        $('.progress').hide(100, function () {
+            $('.progress-bar')
+                .attr('style', 'width: 0%');
+        });
+
+        setTimeout(function(){
+            $('.alert').fadeOut('slow');
+            setTimeout(function () {
+                $('.alert').text('');
+            }, 600);
+        }, 3000);
+
+        $('#file').val('');
+        $('#file').attr('data-title', 'Drag and drop a file');
+    };
 </script>

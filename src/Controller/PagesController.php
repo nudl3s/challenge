@@ -40,18 +40,27 @@ class PagesController extends AppController
                 $url = Router::url('/', true) . 'files/' . $filename;
                 $uploadPath = 'files/';
                 $uploadFile = $uploadPath . $filename;
+                //move uploaded file to server directory
                 if (move_uploaded_file($this->request->getData('file')['tmp_name'], $uploadFile)) {
-                    $files = TableRegistry::getTableLocator()->get('Files');
-                    $file = $files->newEntity([
-                        'name' => $filename,
-                        'path' => $url,
-                        'size' => $size,
-                        'extension' => $type,
-                        'created' => new \DateTime('now')
-                    ]);
-                    if ($files->save($file)) {
-                        $urlVideo = $url = Router::url(['controller' => 'Pages', 'action' => 'single', $file->id,'_full' => true]);
-                        echo json_encode(array('id' => $file->id, 'name' => $filename, 'url' => $urlVideo));
+                    // check if uploaded file is different size. If yes delete corrupted file and display error!
+                    if (filesize($uploadFile) != $size) {
+                        unlink($uploadFile);
+                        echo json_encode(array('error' => 1));
+                    } else {
+                        // Save file into database with all the data
+                        $files = TableRegistry::getTableLocator()->get('Files');
+                        $file = $files->newEntity([
+                            'error' => 0,
+                            'name' => $filename,
+                            'path' => $url,
+                            'size' => $size,
+                            'extension' => $type,
+                            'created' => new \DateTime('now')
+                        ]);
+                        if ($files->save($file)) {
+                            $urlVideo = $url = Router::url(['controller' => 'Pages', 'action' => 'single', $file->id,'_full' => true]);
+                            echo json_encode(array('id' => $file->id, 'name' => $filename, 'url' => $urlVideo));
+                        }
                     }
                 }
             }
